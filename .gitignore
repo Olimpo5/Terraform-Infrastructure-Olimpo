@@ -1,0 +1,23 @@
+# Archivos de estado locales de Terraform
+*.tfstate
+*.tfstate.backup
+
+# Archivos que contienen variables con valores, incluyendo secretos.
+# NUNCA subas estos archivos a un repositorio público.
+*.tfvars
+
+# Archivos de logs de crash
+crash.log
+
+# Archivos de configuración local de la CLI de Terraform
+.terraformrc
+terraform.rc
+
+# Carpetas de módulos y plugins de Terraform
+.terraform/
+
+# Archivos de override
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
