@@ -155,3 +155,24 @@ resource "aws_security_group" "olimpo_rds_sg" {
     Name = "olimpo-rds-sg-${var.aws_environment}"
   }
 }
+
+# modules/main.tf (continuación)
+
+# ===================================================================
+# REPOSITORIO DE IMÁGENES DOCKER (ECR)
+# Almacén privado para nuestras imágenes de contenedor.
+# ===================================================================
+
+resource "aws_ecr_repository" "olimpo_ecr_repo" {
+  name                 = "${olimpo}-${var.aws_environment}" # Nombre del repositorio, ej: olimpo-dev
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true # Escanea automáticamente las imágenes en busca de vulnerabilidades
+  }
+
+  tags = {
+    Name        = "olimpo-repo-${var.aws_environment}"
+    Environment = var.aws_environment
+  }
+}
