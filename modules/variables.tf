@@ -1,31 +1,13 @@
-variable "aws_access_key" {
-  type = string
-}
-
-variable "aws_secret_key" {
-  type = string
-}
+# variables.tf
 
 variable "aws_region" {
-  type = string
-}
-
-variable "aws_key_pair_name" {
-  type = string
-}
-
-variable "aws_olimpo_sg" {
-  type = string
-}
-
-variable "aws_server_name" {
-  type = string
+  description = "La región de AWS para desplegar la infraestructura."
+  type        = string
+  default     = "us-east-2"
 }
 
 variable "aws_environment" {
-  type = string
-}
-
-variable "aws_instance_type" {
-  type = string
+  description = "El nombre del entorno (ej: dev, qa, prod)."
+  type        = string
+  default     = "dev"
 }
