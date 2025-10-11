@@ -1,0 +1,6 @@
+# Este es un archivo de ejemplo.
+# Copia este archivo a 'terraform.tfvars' y rellena los valores.
+# NO guardes el archivo 'terraform.tfvars' en Git si contiene secretos.
+
+aws_region  = "us-east-2"
+environment = "development"
