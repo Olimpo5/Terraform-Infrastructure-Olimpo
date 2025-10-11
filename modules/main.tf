@@ -156,6 +156,8 @@ resource "aws_security_group" "olimpo_rds_sg" {
   }
 }
 
+
+
 # modules/main.tf (continuación)
 
 # ===================================================================
@@ -174,5 +176,75 @@ resource "aws_ecr_repository" "olimpo_ecr_repo" {
   tags = {
     Name        = "olimpo-repo-${var.aws_environment}"
     Environment = var.aws_environment
+  }
+}
+
+# modules/main.tf (continuación)
+
+# ===================================================================
+# CLUSTER DE CONTENEDORES (ECS)
+# Agrupación lógica para nuestros servicios.
+# ===================================================================
+
+resource "aws_ecs_cluster" "olimpo_cluster" {
+  name = "${olimpo}-cluster-${var.aws_environment}"
+
+  tags = {
+    Name        = "olimpo-cluster-${var.aws_environment}"
+    Environment = var.aws_environment
+  }
+}
+
+# ===================================================================
+# BALANCEADOR DE CARGA (ALB)
+# Punto de entrada público para el tráfico de la aplicación.
+# ===================================================================
+
+resource "aws_lb" "olimpo_alb" {
+  name               = "${olimpo}-alb-${var.aws_environment}"
+  internal           = false # Lo queremos de cara a internet
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.olimpo_alb_sg.id] # Usa el SG que ya creamos
+  subnets            = aws_subnet.olimpo_public_subnet[*].id # Lo desplegamos en nuestras subredes públicas
+
+  tags = {
+    Name        = "olimpo-alb-${var.aws_environment}"
+    Environment = var.aws_environment
+  }
+}
+
+# Grupo de destino: le dice al ALB a dónde enviar el tráfico
+resource "aws_lb_target_group" "olimpo_tg" {
+  name        = "${olimpo}-tg-${var.aws_environment}"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.olimpo_vpc.id
+  target_type = "ip" # Necesario para Fargate
+
+  health_check {
+    path                = "/" # Ruta para comprobar la salud de la aplicación
+    protocol            = "HTTP"
+    matcher             = "200" # Espera una respuesta HTTP 200 OK
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+
+  tags = {
+    Name        = "olimpo-tg-${var.aws_environment}"
+    Environment = var.aws_environment
+  }
+}
+
+# Receptor: Conecta el ALB con el grupo de destino
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.olimpo_alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.olimpo_tg.arn
   }
 }
