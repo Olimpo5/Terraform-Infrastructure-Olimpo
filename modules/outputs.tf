@@ -1,4 +1,6 @@
-output "aws_instance_ip" {
-  value = aws_instance.olimpo_app_server.*.public_ip
-}
+# modules/outputs.tf
 
+output "ecr_repository_url" {
+  description = "La URL del repositorio de ECR para subir imágenes Docker."
+  value       = aws_ecr_repository.olimpo_ecr_repo.repository_url
+}

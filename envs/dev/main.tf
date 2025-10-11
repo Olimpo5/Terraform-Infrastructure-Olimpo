@@ -1,16 +1,14 @@
-module "vm-linux-server" {
-  source            = "../../modules"
-  aws_access_key    = var.AWS_ACCESS_KEY
-  aws_secret_key    = var.AWS_SECRET_KEY
-  aws_key_pair_name = var.AWS_KEY_PAIR_NAME
-  aws_region        = var.AWS_REGION
-  aws_environment   = var.AWS_ENVIRONMENT
-  aws_olimpo_sg     = var.AWS_OLIMPO_SG
-  aws_instance_type = var.AWS_INSTANCE_TYPE
-  aws_server_name   = var.AWS_SERVER_NAME
+# envs/dev/main.tf
+
+module "olimpo_infra" {
+  source = "../../modules"
+
+  aws_region      = var.AWS_REGION
+  aws_environment = var.AWS_ENVIRONMENT
+  # La variable "project_name" usará el valor por defecto ("olimpo") que definimos en el módulo
 }
 
-output "vm-linux-server-ip" {
-  value = module.vm-linux-server.aws_instance_ip
+output "ecr_repository_url" {
+  description = "URL del repositorio ECR."
+  value       = module.olimpo_infra.ecr_repository_url
 }
-
