@@ -29,3 +29,27 @@ variable "aws_environment" {
 variable "aws_instance_type" {
   type = string
 }
+
+variable "postgres_user" {
+  type = string
+}
+
+variable "postgres_password" {
+  type = string
+}
+
+variable "postgres_db" {
+  type = string
+}
+
+variable "postgres_host" {
+  type = string
+}
+
+variable "postgres_port" {
+  type = string
+}
+
+variable "main_domain" {
+  type = string
+}
