@@ -8,9 +8,20 @@ module "vm-linux-server" {
   aws_olimpo_sg     = var.AWS_OLIMPO_SG
   aws_instance_type = var.AWS_INSTANCE_TYPE
   aws_server_name   = var.AWS_SERVER_NAME
+  postgres_user     = var.POSTGRES_USER
+  postgres_password = var.POSTGRES_PASSWORD
+  postgres_db       = var.POSTGRES_DB
+  postgres_host     = var.POSTGRES_HOST
+  postgres_port     = var.POSTGRES_PORT
+  main_domain       = var.MAIN_DOMAIN
 }
 
-output "vm-linux-server-ip" {
-  value = module.vm-linux-server.aws_instance_ip
+output "vm-linux-server-public-ip" {
+  value = module.vm-linux-server.olimpo_server_public_ip_output
 }
+
+output "vm-linux-server-private-ip" {
+  value = module.vm-linux-server.olimpo_server_private_ip_output
+}
+
 
