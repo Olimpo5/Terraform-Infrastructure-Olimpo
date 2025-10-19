@@ -138,7 +138,7 @@ resource "aws_instance" "olimpo_server" {
 
 resource "time_sleep" "wait_120_seconds" {
   create_duration = "120s"
-  depends_on      = [aws_instance.olimpo_app_server]
+  depends_on      = [aws_instance.olimpo_server]
 }
 
 resource "null_resource" "setup_app" {
