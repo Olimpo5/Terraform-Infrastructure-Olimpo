@@ -1,0 +1,116 @@
+name: Deploy Dev Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+env:
+  TF_VAR_AWS_ACCESS_KEY: ${{ secrets.TF_VAR_AWS_ACCESS_KEY }}
+  TF_VAR_AWS_SECRET_KEY: ${{ secrets.TF_VAR_AWS_SECRET_KEY }}
+  TF_VAR_AWS_REGION: ${{ secrets.TF_VAR_AWS_REGION }}
+  TF_VAR_AWS_KEY_PAIR_NAME: ${{ secrets.TF_VAR_AWS_KEY_PAIR_NAME }}
+  TF_VAR_AWS_ENVIRONMENT: ${{ secrets.TF_VAR_ENVIRONMENT }}
+  TF_VAR_AWS_OLIMPO_SG: ${{ secrets.TF_VAR_AWS_OLIMPO_SG }}
+  TF_VAR_AWS_INSTANCE_TYPE: ${{ secrets.TF_VAR_AWS_INSTANCE_TYPE }}
+  TF_VAR_AWS_SERVER_NAME: ${{ secrets.TF_VAR_SERVER_NAME }}
+  TF_VAR_POSTGRES_USER: ${{ secrets.TF_VAR_POSTGRES_USER }}
+  TF_VAR_POSTGRES_PASSWORD: ${{ secrets.TF_VAR_POSTGRES_PASSWORD }}
+  TF_VAR_POSTGRES_DB: ${{ secrets.TF_VAR_POSTGRES_DB }}
+  TF_VAR_POSTGRES_HOST: ${{ secrets.TF_VAR_POSTGRES_HOST }}
+  TF_VAR_POSTGRES_PORT: ${{ secrets.TF_VAR_POSTGRES_PORT }}
+  TF_VAR_MAIN_DOMAIN: ${{ secrets.TF_VAR_MAIN_DOMAIN }}
+
+jobs:
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: ${{ secrets.TF_VAR_AWS_REGION }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create SSH Keys from secrets
+        run: |
+          mkdir -p ./envs/dev/keys
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ./envs/dev/keys/restaurant_app_key
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ./envs/dev/keys/restaurant_app_key.pub
+          chmod 600 ./envs/dev/keys/restaurant_app_key
+          chmod 644 ./envs/dev/keys/restaurant_app_key.pub
+
+      # Artifacts -> ARCHIVOS <carpeta>, REPORTES DE PRUEBA O PARA COMPILACIONES
+      - name: Upload SSH Keys
+        uses: actions/upload-artifact@v4
+        with:
+          name: ssh-keys
+          path: ./envs/dev/keys
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.9.2
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: terraform -chdir=envs/dev init
+
+      - name: Terraform Format Check
+        run: terraform -chdir=envs/dev fmt
+
+      - name: Terraform Plan
+        run: terraform -chdir=envs/dev plan -out=plan.out
+
+      - name: Upload Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tf-plan
+          path: envs/dev/plan.out
+          if-no-files-found: error
+
+  terraform-apply:
+    name: Terraform Apply
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: ${{ secrets.TF_VAR_AWS_REGION }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download SSH Keys
+        uses: actions/download-artifact@v4
+        with:
+          name: ssh-keys
+          path: ./envs/dev/keys
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.9.2
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: terraform -chdir=envs/dev init
+
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tf-plan
+          path: envs/dev
+
+      - name: Terraform Apply
+        run: terraform -chdir=envs/dev apply plan.out
