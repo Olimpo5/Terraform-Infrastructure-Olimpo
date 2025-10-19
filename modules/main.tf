@@ -104,9 +104,9 @@ resource "aws_instance" "olimpo_app_server" {
 # - En el segundo provisioner copiamos el archivo docker-compose.yml de nuestra maquina a la carpeta containers
 resource "aws_instance" "olimpo_server" {
   ami           = "ami-0cfde0ea8edd312d4"
-  instance_type = "t3.small"
+  instance_type = var.aws_instance_type
   key_name      = aws_key_pair.olimpo_app_key.key_name
-  user_data     = filebase64("./scripts/apps-install.sh")
+  user_data     = filebase64("${path.module}/vm/scripts/apps-install.sh")
   vpc_security_group_ids = [
     aws_security_group.olimpo_sg.id
   ]
@@ -173,7 +173,7 @@ resource "null_resource" "setup_app" {
     connection {
       type        = "ssh"
       user        = "ubuntu"
-      private_key = file("./keys/restaurant_app_key")
+      private_key = file("./keys/olimpo_app_key")
       host        = aws_instance.olimpo_app_server.public_ip
     }
     inline = [
