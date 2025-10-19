@@ -30,10 +30,6 @@ variable "AWS_INSTANCE_TYPE" {
   type = string
 }
 
-variable "AWS_NAME_BUCKET" {
-  type = string
-}
-
 variable "POSTGRES_USER" {
   type = string
 }
